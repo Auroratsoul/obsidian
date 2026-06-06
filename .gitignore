@@ -28,6 +28,9 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+main.js
+main.js.map
+*.js.map
 
 # 临时文件
 *.tmp
