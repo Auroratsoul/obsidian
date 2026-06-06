@@ -1,14 +1,14 @@
-import { Plugin, TFile } from 'obsidian';
+import { Plugin, TFile, Notice } from 'obsidian';
 import { DataStore } from './data/store';
 import { DatabaseIndex } from './data/index';
 import { LinkResolver, LinkRenderer, EmbedManager } from './links';
 import { TableView, BoardView, CalendarView, GanttView } from './views';
 import { ToolBar, FilterBar } from './components';
 import { DatabaseConfig, ViewType } from './data/types';
-import { DatabasePluginSettings, DEFAULT_SETTINGS, DatabaseSettingTab } from './settings';
+import { PrismTableSettings, DEFAULT_SETTINGS, PrismTableSettingTab } from './settings';
 
-export default class DatabasePlugin extends Plugin {
-	settings!: DatabasePluginSettings;
+export default class PrismTablePlugin extends Plugin {
+	settings!: PrismTableSettings;
 	private dataStore!: DataStore;
 	private databaseIndex!: DatabaseIndex;
 	private linkResolver!: LinkResolver;
@@ -16,7 +16,7 @@ export default class DatabasePlugin extends Plugin {
 	private embedManager!: EmbedManager;
 
 	async onload() {
-		console.log('Loading Database plugin');
+		console.log('Loading Prism Table plugin');
 
 		// Load settings
 		await this.loadSettings();
@@ -33,20 +33,20 @@ export default class DatabasePlugin extends Plugin {
 
 		// Register commands
 		this.addCommand({
-			id: 'create-database',
-			name: 'Create Database',
-			callback: () => this.createDatabase()
+			id: 'create-table',
+			name: 'Create Table',
+			callback: () => this.createTable()
 		});
 
 		this.addCommand({
-			id: 'open-database',
-			name: 'Open Database',
-			callback: () => this.openDatabase()
+			id: 'open-table',
+			name: 'Open Table',
+			callback: () => this.openTable()
 		});
 
-		// Register code block processor for database
-		this.registerMarkdownCodeBlockProcessor('database', (source, el, ctx) => {
-			this.renderDatabaseCodeBlock(source, el, ctx);
+		// Register code block processor for prism table
+		this.registerMarkdownCodeBlockProcessor('prism-table', (source, el, ctx) => {
+			this.renderTableCodeBlock(source, el, ctx);
 		});
 
 		// Register link processor
@@ -55,20 +55,20 @@ export default class DatabasePlugin extends Plugin {
 		});
 
 		// Add settings tab
-		this.addSettingTab(new DatabaseSettingTab(this.app, this));
+		this.addSettingTab(new PrismTableSettingTab(this.app, this));
 
 		// Add ribbon icon
-		this.addRibbonIcon('database', 'Open Database', () => {
-			this.openDatabase();
+		this.addRibbonIcon('table', 'Open Prism Table', () => {
+			this.openTable();
 		});
 
 		// Add status bar item
 		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Database Plugin Active');
+		statusBarItemEl.setText('Prism Table Active');
 	}
 
 	onunload() {
-		console.log('Unloading Database plugin');
+		console.log('Unloading Prism Table plugin');
 	}
 
 	async loadSettings() {
@@ -79,61 +79,57 @@ export default class DatabasePlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async createDatabase() {
-		// TODO: Implement database creation dialog
-		console.log('Creating database...');
+	async createTable() {
+		console.log('Creating table...');
 
-		// For now, create a simple database file
-		const fileName = `Database_${Date.now()}.md`;
-		const content = this.getDefaultDatabaseContent(fileName);
+		const fileName = `Table_${Date.now()}.md`;
+		const content = this.getDefaultTableContent(fileName);
 
 		try {
 			const file = await this.app.vault.create(fileName, content);
 			await this.app.workspace.openLinkText(file.path, '', true);
-			new Notice('Database created successfully!');
+			new Notice('Table created successfully!');
 		} catch (error) {
-			console.error('Error creating database:', error);
-			new Notice('Error creating database');
+			console.error('Error creating table:', error);
+			new Notice('Error creating table');
 		}
 	}
 
-	async openDatabase() {
-		// TODO: Implement database selection dialog
-		console.log('Opening database...');
+	async openTable() {
+		console.log('Opening table...');
 
-		// For now, open the first database found
 		const databases = this.databaseIndex.getAllDatabases();
 		if (databases.length > 0 && databases[0]) {
 			await this.app.workspace.openLinkText(databases[0].file.path, '', true);
 		} else {
-			new Notice('No databases found. Create a new database first.');
+			new Notice('No tables found. Create a new table first.');
 		}
 	}
 
-	private renderDatabaseCodeBlock(source: string, el: HTMLElement, ctx: any) {
+	private renderTableCodeBlock(source: string, el: HTMLElement, ctx: any) {
 		const file = ctx.sourcePath ? this.app.vault.getAbstractFileByPath(ctx.sourcePath) : null;
 		if (!(file instanceof TFile)) {
-			el.createDiv({ text: 'Error: Could not find file', cls: 'database-error' });
+			el.createDiv({ text: 'Error: Could not find file', cls: 'prism-table-error' });
 			return;
 		}
 
 		this.dataStore.loadDatabase(file).then(database => {
 			if (!database) {
-				el.createDiv({ text: 'Error: Not a database file', cls: 'database-error' });
+				el.createDiv({ text: 'Error: Not a table file', cls: 'prism-table-error' });
 				return;
 			}
 
-			this.renderDatabaseView(el, file, database);
+			this.renderTableView(el, file, database);
 		}).catch(error => {
-			el.createDiv({ text: `Error: ${error.message}`, cls: 'database-error' });
+			el.createDiv({ text: `Error: ${error.message}`, cls: 'prism-table-error' });
 		});
 	}
 
-	private renderDatabaseView(container: HTMLElement, file: TFile, database: DatabaseConfig) {
-		const wrapper = container.createDiv({ cls: 'database-wrapper' });
+	private renderTableView(container: HTMLElement, file: TFile, database: DatabaseConfig) {
+		const wrapper = container.createDiv({ cls: 'prism-table-wrapper' });
 
 		// Create toolbar
-		const toolbarEl = wrapper.createDiv({ cls: 'database-toolbar' });
+		const toolbarEl = wrapper.createDiv({ cls: 'prism-table-toolbar' });
 		const toolbar = new ToolBar(
 			toolbarEl,
 			database,
@@ -143,7 +139,7 @@ export default class DatabasePlugin extends Plugin {
 		);
 
 		// Create view container
-		const viewContainer = wrapper.createDiv({ cls: 'database-view-container' });
+		const viewContainer = wrapper.createDiv({ cls: 'prism-table-view-container' });
 
 		// Render default view (table)
 		this.renderView(viewContainer, file, database, 'table');
@@ -181,19 +177,17 @@ export default class DatabasePlugin extends Plugin {
 	}
 
 	private switchView(container: HTMLElement, file: TFile, database: DatabaseConfig, viewType: ViewType) {
-		const viewContainer = container.querySelector('.database-view-container') as HTMLElement;
+		const viewContainer = container.querySelector('.prism-table-view-container') as HTMLElement;
 		if (viewContainer) {
 			this.renderView(viewContainer, file, database, viewType);
 		}
 	}
 
 	private async addRow(file: TFile) {
-		// TODO: Implement add row functionality
 		console.log('Add row to:', file.path);
 	}
 
 	private async addColumn(file: TFile) {
-		// TODO: Implement add column functionality
 		console.log('Add column to:', file.path);
 	}
 
@@ -203,7 +197,7 @@ export default class DatabasePlugin extends Plugin {
 		links.forEach(link => {
 			const href = link.getAttribute('data-href');
 			if (href && this.linkResolver.isDatabaseLink(href)) {
-				link.classList.add('database-link');
+				link.classList.add('prism-table-link');
 			}
 		});
 
@@ -217,7 +211,7 @@ export default class DatabasePlugin extends Plugin {
 		});
 	}
 
-	private getDefaultDatabaseContent(name: string): string {
+	private getDefaultTableContent(name: string): string {
 		return `---
 type: database
 version: 1
@@ -259,10 +253,7 @@ rows:
 
 # ${name}
 
-This is a database file.
+This is a Prism Table file.
 `;
 	}
 }
-
-// Import Notice from obsidian
-import { Notice } from 'obsidian';

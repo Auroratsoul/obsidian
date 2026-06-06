@@ -1,6 +1,6 @@
 {
-	"id": "obsidian-database",
-	"name": "Database",
+	"id": "prism-table",
+	"name": "Prism Table",
 	"version": "1.0.0",
 	"minAppVersion": "1.0.0",
 	"description": "A Notion-like database plugin for Obsidian. Provides structured data management with table, board, calendar, and gantt views.",

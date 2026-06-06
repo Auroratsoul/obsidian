@@ -1,7 +1,7 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import DatabasePlugin from './main';
+import PrismTablePlugin from './main';
 
-export interface DatabasePluginSettings {
+export interface PrismTableSettings {
 	defaultView: 'table' | 'board' | 'calendar' | 'gantt';
 	dateFormat: string;
 	theme: 'light' | 'dark' | 'auto';
@@ -11,7 +11,7 @@ export interface DatabasePluginSettings {
 	autoSaveInterval: number;
 }
 
-export const DEFAULT_SETTINGS: DatabasePluginSettings = {
+export const DEFAULT_SETTINGS: PrismTableSettings = {
 	defaultView: 'table',
 	dateFormat: 'YYYY-MM-DD',
 	theme: 'auto',
@@ -21,10 +21,10 @@ export const DEFAULT_SETTINGS: DatabasePluginSettings = {
 	autoSaveInterval: 5000
 };
 
-export class DatabaseSettingTab extends PluginSettingTab {
-	plugin: DatabasePlugin;
+export class PrismTableSettingTab extends PluginSettingTab {
+	plugin: PrismTablePlugin;
 
-	constructor(app: App, plugin: DatabasePlugin) {
+	constructor(app: App, plugin: PrismTablePlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -33,12 +33,12 @@ export class DatabaseSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl('h2', { text: 'Database Plugin Settings' });
+		containerEl.createEl('h2', { text: 'Prism Table Settings' });
 
 		// Default View Setting
 		new Setting(containerEl)
 			.setName('Default View')
-			.setDesc('Choose the default view for new databases')
+			.setDesc('Choose the default view for new tables')
 			.addDropdown(dropdown => {
 				dropdown
 					.addOption('table', 'Table')
@@ -72,7 +72,7 @@ export class DatabaseSettingTab extends PluginSettingTab {
 		// Theme Setting
 		new Setting(containerEl)
 			.setName('Theme')
-			.setDesc('Choose the theme for database views')
+			.setDesc('Choose the theme for table views')
 			.addDropdown(dropdown => {
 				dropdown
 					.addOption('light', 'Light')
